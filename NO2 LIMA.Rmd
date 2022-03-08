@@ -1,0 +1,86 @@
+---
+title: "Aprende R desde Cero Para SIG (Basico - Avanzado)"
+author: "Ing. Gorky Florez Castillo"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    social: [ "twitter", "facebook", "whatsapp", "instagram", "telegram", "linkedin", "pinterest" ]
+    source_code: "https://github.com/GorkyFlorez"
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+##--------------------------
+library(sf)
+library(mapedit)
+library(raster)
+library(ggplot2)
+library(tmap)
+library(rgee)
+library(mapedit)
+library(rgee)
+library(googledrive)
+library(rgee)
+library(mapedit)
+library(tibble)
+library(sf)
+library(cptcity)
+library(tidyverse)
+library(sp)
+library(leaflet.extras2)
+library(raster)
+library(stars)
+library(geojsonio)
+##--------------------------
+ee_Initialize("gflorezc", drive = T)
+
+box <- ee$Geometry$Rectangle(coords= c(-77.26903, -12.52042, -76.62148,-11.57288),
+                             proj= "EPSG:4326", geodesic = F)
+
+# Comportamiento de N02 - Sentinel 5p
+
+## Llamar a Sistema de vigilancia de calidad de Aire
+Poligono <-ee$FeatureCollection("users/gflorezc/Lima_Province")
+PaleN02020 <- c('#2f82ff', '#24c2d2', '#1dfff5', '#78f529', '#00b300', '#edff51',
+                  '#fff708','#ffaf1d','#ff5616', '#ff0606')
+PaleN02020 <- c('black', 'blue', 'purple', 'cyan', 'green', 'yellow', 'red')
+PaleN02020 <- c('#9331dc', '#165dff', '#10aebe', '#00ffff', '#ffee21', '#f19e21', '#ff4223')
+##--------------------------
+# Periodo 2020 - 
+N02018 = ee$ImageCollection("COPERNICUS/S5P/OFFL/L3_NO2")$  # NO2
+  select("tropospheric_NO2_column_number_density")$ #Datos para la columna de NO2
+  filterDate("2018-01-01", "2019-01-01")$
+  median()$
+  clip(Poligono)
+
+# Periodo 2020 - 
+N02020 = ee$ImageCollection("COPERNICUS/S5P/OFFL/L3_NO2")$  # NO2
+  select("tropospheric_NO2_column_number_density")$ #Datos para la columna de NO2
+  filterDate("2020-01-01", "2021-01-01")$
+  median()$
+  clip(Poligono)
+  
+```
+
+Sistema de vigilancia de calidad de Aire 
+===================================== 
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+### Comportamiento de N02 - Sentinel 5p Lima Provincias periodo (2018 - 2020)
+```{r d}
+# Visualizacion
+Map$centerObject(Poligono)
+Map$addLayer(N02018, visParams = list(                      
+  min=0,   max=0.0002, palette= PaleN02020) ,0.6, TRUE ,name="NO2 2020-2021")+
+  
+Map$addLegend(visParams = list(min=0,   max=0.0002, palette= PaleN02020),
+              name = "NO2 mol/m2 (2018)" ,position = c("bottomleft") )         |
+  
+  Map$addLayer(N02020, visParams = list(                      
+    min=0,   max=0.0002, palette= PaleN02020) ,0.6, TRUE ,name="NO2 2018-2019")+
+  Map$addLegend(visParams = list(min=0,   max=0.0002, palette= PaleN02020),
+                name = "NO2 mol/m2 (2020)" ,position = c("bottomright") ) 
+```
+
